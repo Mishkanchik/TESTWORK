@@ -1,18 +1,20 @@
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { useAllowedSources } from "../hooks/useNews";
+import { cn } from "@/lib/utils";
 
 interface Props {
     onSearchChange: (val: string) => void;
     onSourceChange: (val: string) => void;
     onSortChange: (val: string) => void;
+    className?: string;
 }
 
-export default function Filters({ onSearchChange, onSourceChange, onSortChange }: Props) {
+export default function Filters({ onSearchChange, onSourceChange, onSortChange, className }: Props) {
     const { data: sources } = useAllowedSources();
 
     return (
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+        <div className={cn("flex flex-col sm:flex-row gap-4", className)}>
             <Input
                 placeholder="Пошук за назвою..."
                 onChange={(e) => onSearchChange(e.target.value)}
