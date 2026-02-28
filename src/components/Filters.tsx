@@ -18,7 +18,7 @@ export default function Filters({ onSearchChange, onSourceChange, onSortChange, 
             <Input
                 placeholder="Пошук за назвою..."
                 onChange={(e) => onSearchChange(e.target.value)}
-                className="max-w-sm"
+                className="max-w-sm text-black"
             />
 
             <Select onValueChange={onSourceChange}>

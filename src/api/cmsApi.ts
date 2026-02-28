@@ -70,32 +70,30 @@ export const getAllowedSources = async (): Promise<AllowedSource[]> => {
 
 export const getTopics = async (): Promise<Topic[]> => {
     try {
-        const res = await cmsApi.get("/topics");
+        const res = await cmsApi.get("/topics", {
+            params: {
+                populate: "keywords",  // ← це ключовий рядок! Розгортає repeatable компонент
+            },
+        });
 
-        console.log("Теми з Strapi (повна відповідь):", res.data);
+        console.log("Теми з Strapi (повна відповідь):", JSON.stringify(res.data, null, 2));
 
         if (!res.data.data || !Array.isArray(res.data.data)) {
             console.warn("Теми: не масив");
             return [];
         }
 
-        const topics = res.data.data.map((item: any) => {
-            console.log("Одна тема:", item); // ключовий лог — подивись сюди
-
-            // keywords — якщо це repeatable, то масив об'єктів { keyword: "..." }
+        return res.data.data.map((item: any) => {
             const keywords = item.keywords
                 ? item.keywords.map((k: any) => k.keyword || k || "").filter(Boolean)
                 : [];
 
             return {
-                id: item.id as string | number,
-                name: item.name as string || "Без назви",
+                id: item.id,
+                name: item.name || "Без назви",
                 keywords,
             };
         });
-
-        console.log("Оброблені теми:", topics);
-        return topics;
     } catch (error) {
         console.error("Помилка тем:", error);
         return [];

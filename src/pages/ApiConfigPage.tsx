@@ -4,10 +4,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, RefreshCw, Settings } from "lucide-react";
+import { AlertCircle, RefreshCw, Settings, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
 
 export default function ApiConfigPage() {
     const { data: sources, isLoading: sourcesLoading, error: sourcesError, refetch: refetchSources } = useAllowedSources();
@@ -23,7 +22,7 @@ export default function ApiConfigPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30">
-            {/* Header — преміум скло + градієнт */}
+            {/* Header */}
             <header className="border-b border-border/50 bg-background/80 backdrop-blur-xl sticky top-0 z-50 shadow-sm">
                 <div className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-6 flex items-center justify-between">
                     <h1 className="text-4xl md:text-5xl font-black tracking-tight bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
@@ -46,19 +45,19 @@ export default function ApiConfigPage() {
                             onClick={handleRefresh}
                             className="font-medium shadow-lg hover:shadow-xl transition-all flex items-center gap-2"
                         >
-                            <RefreshCw className="h-5 w-5 animate-spin-once" />
+                            <RefreshCw className="h-5 w-5" />
                             Оновити
                         </Button>
                     </div>
                 </div>
             </header>
 
-            {/* Main Content */}
+            {/* Main */}
             <main className="max-w-screen-2xl mx-auto px-6 lg:px-12 py-12">
                 {isLoading ? (
                     <div className="grid gap-8 md:grid-cols-2">
-                        <Skeleton className="h-[500px] rounded-3xl shadow-lg" />
-                        <Skeleton className="h-[500px] rounded-3xl shadow-lg" />
+                        <Skeleton className="h-[520px] rounded-3xl shadow-2xl" />
+                        <Skeleton className="h-[520px] rounded-3xl shadow-2xl" />
                     </div>
                 ) : hasError ? (
                     <Alert variant="destructive" className="max-w-4xl mx-auto bg-destructive/10 border-destructive/30 backdrop-blur-sm rounded-2xl p-8">
@@ -118,7 +117,7 @@ export default function ApiConfigPage() {
                             <Card className="overflow-hidden border-0 bg-gradient-to-br from-card/95 to-card/80 backdrop-blur-xl rounded-3xl shadow-2xl hover:shadow-3xl transition-shadow duration-500">
                                 <CardHeader className="pb-4 bg-gradient-to-r from-primary/5 to-primary/10">
                                     <CardTitle className="flex items-center gap-3 text-2xl font-bold">
-                                        <span role="img" aria-label="sparkles" className="text-3xl">✨</span>
+                                        <Sparkles className="h-7 w-7 text-primary" />
                                         Теми (класифікація за ключовими словами)
                                     </CardTitle>
                                     <CardDescription className="text-base mt-2">
@@ -147,15 +146,19 @@ export default function ApiConfigPage() {
                                                         {topic.name}
                                                     </h3>
                                                     <div className="flex flex-wrap gap-3">
-                                                        {topic.keywords.map((kw, idx) => (
-                                                            <Badge
-                                                                key={idx}
-                                                                variant="outline"
-                                                                className="text-base px-5 py-2 border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all duration-300 rounded-full"
-                                                            >
-                                                                {kw}
-                                                            </Badge>
-                                                        ))}
+                                                        {topic.keywords.length > 0 ? (
+                                                            topic.keywords.map((kw, idx) => (
+                                                                <Badge
+                                                                    key={idx}
+                                                                    variant="outline"
+                                                                    className="text-base px-5 py-2 border-primary/30 bg-primary/5 hover:bg-primary/10 transition-all duration-300 rounded-full"
+                                                                >
+                                                                    {kw}
+                                                                </Badge>
+                                                            ))
+                                                        ) : (
+                                                            <p className="text-muted-foreground italic">Ключові слова відсутні</p>
+                                                        )}
                                                     </div>
                                                 </div>
                                             ))}

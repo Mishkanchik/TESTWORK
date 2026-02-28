@@ -10,18 +10,16 @@ export const useAllowedSources = () => {
         queryKey: ["allowed-sources"],
         queryFn: async () => {
             const sources = await getAllowedSources();
-            // Fallback, якщо Strapi порожній
             return sources.length > 0
                 ? sources
                 : [
                     { id: "bbc-news", name: "BBC News" },
                     { id: "cnn", name: "CNN" },
                     { id: "reuters", name: "Reuters" },
-                    { id: "techcrunch", name: "TechCrunch" },
+                    { id: "the-verge", name: "The Verge" },
                 ];
         },
         staleTime: 1000 * 60 * 60, // 1 година
-        gcTime: 1000 * 60 * 60 * 24,
     });
 };
 
@@ -31,7 +29,6 @@ export const useTopics = () => {
         queryKey: ["topics"],
         queryFn: getTopics,
         staleTime: 1000 * 60 * 60,
-        gcTime: 1000 * 60 * 60 * 24,
     });
 };
 
@@ -59,11 +56,21 @@ export const useNews = (filters: {
         queryFn: async () => {
             let result: NewsResponse;
 
-            if (filters.search && filters.search.trim().length > 2) {
+            // Якщо є тема — додаємо її ключові слова до пошуку
+            let effectiveSearch = filters.search || "";
+            if (filters.topic && filters.topic !== "all") {
+                const selectedTopic = topics.find(t => t.name === filters.topic);
+                if (selectedTopic && selectedTopic.keywords.length > 0) {
+                    effectiveSearch = selectedTopic.keywords.join(" OR ");
+                    console.log(`Автоматичний пошук за темою "${filters.topic}": q=${effectiveSearch}`);
+                }
+            }
+
+            if (effectiveSearch.trim().length > 2) {
                 result = await searchEverything({
-                    q: filters.search.trim(),
+                    q: effectiveSearch.trim(),
                     sources: finalSources || undefined,
-                    sortBy: filters.sortBy || "publishedAt",
+                    sortBy: filters.sortBy || "relevancy", // relevancy краще для ключових слів
                 });
             } else {
                 result = await getTopHeadlines({
@@ -72,29 +79,23 @@ export const useNews = (filters: {
                 });
             }
 
-            // 1. Фільтрація за темою (якщо вибрано)
-            let filteredArticles = result.articles;
-            if (filters.topic && filters.topic !== "all") {
-                const selectedTopic = topics.find(t => t.name === filters.topic);
-                if (selectedTopic) {
-                    filteredArticles = filteredArticles.filter(article => {
-                        const titleLower = article.title.toLowerCase();
-                        return selectedTopic.keywords.some(kw =>
-                            titleLower.includes(kw.toLowerCase())
-                        );
-                    });
-                }
-            }
+            console.log(`Отримано статей: ${result.articles.length}`);
 
-            // 2. Збагачення статей темами (для бейджів на картках)
-            const enrichedArticles = filteredArticles.map(article => {
-                const titleLower = article.title.toLowerCase();
-                const matchedTopic = topics.find(t =>
-                    t.keywords.some(kw => titleLower.includes(kw.toLowerCase()))
+            // Збагачення темами
+            const enrichedArticles = result.articles.map(article => {
+                const text = [
+                    article.title || "",
+                    article.description || "",
+                    article.content || "",
+                ].join(" ").toLowerCase();
+
+                const matched = topics.find(t =>
+                    t.keywords.some(kw => text.includes(kw.toLowerCase()))
                 );
+
                 return {
                     ...article,
-                    topic: matchedTopic?.name,
+                    topic: matched?.name,
                 };
             });
 
@@ -105,7 +106,6 @@ export const useNews = (filters: {
         },
 
         enabled: isEnabled,
-        staleTime: 1000 * 60 * 5, // 5 хвилин для новин
-        gcTime: 1000 * 60 * 30,
+        staleTime: 1000 * 60 * 5,
     });
 };
